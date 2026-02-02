@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Birthday Forest 🌲</title>
+
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    background: #0b3d2e;
+    transition: background 4s ease;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+    color: #eafaf1;
+    overflow: hidden;
+  }
+
+  body.night {
+    background: #020b12;
+  }
+
+  button {
+    padding: 14px 20px;
+    font-size: 16px;
+    border: none;
+    border-radius: 14px;
+    cursor: pointer;
+    background: #2ecc71;
+    color: #0b3d2e;
+    margin: 6px auto;
+    width: 100%;
+    max-width: 260px;
+    display: block;
+  }
+
+  button:disabled {
+    opacity: 0.4;
+  }
+
+  .popup {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.6);
+    justify-content: center;
+    align-items: center;
+    padding: 15px;
+    z-index: 5;
+  }
+
+  .popup-content {
+    background: #102f23;
+    padding: 25px;
+    border-radius: 20px;
+    text-align: center;
+    max-width: 420px;
+    width: 100%;
+  }
+
+  h1 {
+    color: #7dffb3;
+    margin-top: 0;
+  }
+
+  .message-box {
+    background: #0b3d2e;
+    border: 2px solid #2ecc71;
+    border-radius: 14px;
+    padding: 15px;
+    margin: 15px 0;
+    min-height: 70px;
+    white-space: pre-line;
+    font-size: 15px;
+  }
+
+  .letter {
+    display: none;
+    background: #0b3d2e;
+    border: 2px solid #7dffb3;
+    border-radius: 14px;
+    padding: 15px;
+    max-height: 160px;
+    overflow-y: auto;
+    text-align: left;
+    font-size: 14px;
+  }
+
+  .close-btn {
+    background: #555;
+    color: white;
+  }
+
+  .final-screen {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: #020b12;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    padding: 20px;
+    z-index: 10;
+  }
+
+  .star {
+    position: absolute;
+    width: 2px;
+    height: 2px;
+    background: white;
+    border-radius: 50%;
+    opacity: 0;
+    animation: fadeIn 3s forwards;
+  }
+
+  @keyframes fadeIn {
+    to { opacity: 1; }
+  }
+
+  .confetti {
+    position: absolute;
+    border-radius: 50%;
+    opacity: 0.9;
+    animation: confettiFall linear forwards;
+  }
+
+  @keyframes confettiFall {
+    to {
+      transform: translateY(110vh) rotate(720deg);
+      opacity: 0;
+    }
+  }
+</style>
+</head>
+
+<body>
+
+<button id="startBtn" onclick="openPopup()">Enter the forest 🌲</button>
+
+<div class="popup" id="popup">
+  <div class="popup-content">
+    <h1>Happy 25th Birthday, Lonnie 🎉</h1>
+
+    <div class="message-box" id="messageBox"></div>
+
+    <button id="msgBtn" onclick="showMessage()" disabled>Read message 💌</button>
+    <button id="letterBtn" onclick="showLetter()" disabled>Dig! Dig! Dig! ⛏️</button>
+
+    <div class="letter" id="letter">
+You find a scroll buried under the tree<br><br>      
+Dear Lonnie,<br><br>
+      Happy birthday, my love. I hope today gives you a bit of peace, warmth, and things that make you feel like yourself. You’re a strong woman, even on the days it doesn’t feel that way, and you’ve handled more than you probably give yourself credit for. I hope you remember you’re not alone, and that there are people rooting for you, quietly and sincerely. I wish you a year that’s gentle with you and gives you moments you can breathe in. I’m really thankful I got to meet you online. You’ve made my days brighter just by being you.
+    </div>
+
+    <button class="close-btn" onclick="leaveForest()">Make a wish 🌙</button>
+  </div>
+</div>
+
+<div class="final-screen" id="finalScreen">
+  <div>
+    <h1>Make a wish, Lonnie ✨</h1>
+    <p>You’re 25 now.<br>Close your eyes.<br>Breathe.</p>
+    <button onclick="restart()">Start again 🌱</button>
+  </div>
+</div>
+
+<audio id="forestAmbience" src="forest.mp3" loop></audio>
+<audio id="birthdaySong" src="song.mp3"></audio>
+
+<script>
+  const NAME = "Lonnie";
+  const AGE = 25;
+
+  const startBtn = document.getElementById("startBtn");
+  const popup = document.getElementById("popup");
+  const messageBox = document.getElementById("messageBox");
+  const msgBtn = document.getElementById("msgBtn");
+  const letterBtn = document.getElementById("letterBtn");
+  const letter = document.getElementById("letter");
+  const forest = document.getElementById("forestAmbience");
+  const song = document.getElementById("birthdaySong");
+  const finalScreen = document.getElementById("finalScreen");
+
+  let typingInterval = null;
+  let isTyping = false;
+
+  function setButtonsDisabled(state) {
+    document.querySelectorAll(".popup button").forEach(btn => {
+      if (!btn.classList.contains("close-btn")) {
+        btn.disabled = state;
+      }
+    });
+  }
+
+  function typeText(text) {
+    if (typingInterval) clearInterval(typingInterval);
+
+    isTyping = true;
+    setButtonsDisabled(true);
+    messageBox.textContent = "";
+
+    let i = 0;
+    typingInterval = setInterval(() => {
+      messageBox.textContent += text[i];
+      i++;
+      if (i >= text.length) {
+        clearInterval(typingInterval);
+        isTyping = false;
+        setButtonsDisabled(false);
+      }
+    }, 35);
+  }
+
+  function openPopup() {
+    startBtn.style.display = "none";
+    popup.style.display = "flex";
+    forest.volume = 0.4;
+    forest.play();
+    typeText(`${NAME} steps into a quiet forest 🌲\nThe air feels calm.\nYou find a shovel under a tree and a message\nSadly, you quickly find out that the shovel isn’t strong enough to dig through the earth. But will you try anyway?`);
+    setTimeout(() => msgBtn.disabled = false, 2000);
+    setTimeout(() => letterBtn.disabled = false, 4000);
+  }
+
+  function showMessage() {
+    if (isTyping) return;
+    typeText(`Happy ${AGE}th birthday, ${NAME} 🎂\n\nI hope today feels gentle and kind.\n psst, dig right under here!`);
+  }
+
+  function showLetter() {
+    letter.style.display = "block";
+  }
+
+  function playMusic() {
+    if (isTyping) return;
+    forest.pause();
+    song.play();
+    typeText("Music fills the forest 🎶\nThis moment is yours.");
+    launchConfetti();
+  }
+
+  function fadeOut(audio) {
+    const f = setInterval(() => {
+      if (audio.volume > 0.05) audio.volume -= 0.05;
+      else {
+        audio.pause();
+        audio.volume = 1;
+        clearInterval(f);
+      }
+    }, 100);
+  }
+
+  function leaveForest() {
+    popup.style.display = "none";
+    document.body.classList.add("night");
+    fadeOut(song);
+    fadeOut(forest);
+    createStars();
+    setTimeout(() => finalScreen.style.display = "flex", 4000);
+  }
+
+  function restart() {
+    finalScreen.style.display = "none";
+    document.body.classList.remove("night");
+    letter.style.display = "none";
+    msgBtn.disabled = true;
+    letterBtn.disabled = true;
+    document.querySelectorAll(".star").forEach(s => s.remove());
+    openPopup();
+  }
+
+  function createStars() {
+    for (let i = 0; i < 90; i++) {
+      const star = document.createElement("div");
+      star.className = "star";
+      star.style.left = Math.random() * 100 + "vw";
+      star.style.top = Math.random() * 100 + "vh";
+      star.style.animationDelay = Math.random() * 2 + "s";
+      document.body.appendChild(star);
+    }
+  }
+
+  function launchConfetti() {
+    const colors = ["#ff7675", "#74b9ff", "#ffeaa7", "#55efc4", "#a29bfe"];
+    for (let i = 0; i < 80; i++) {
+      const c = document.createElement("div");
+      c.className = "confetti";
+      c.style.left = Math.random() * 100 + "vw";
+      c.style.width = c.style.height = 6 + Math.random() * 6 + "px";
+      c.style.background = colors[Math.floor(Math.random() * colors.length)];
+      c.style.animationDuration = 3 + Math.random() * 2 + "s";
+      document.body.appendChild(c);
+      setTimeout(() => c.remove(), 5000);
+    }
+  }
+</script>
+
+</body>
+</html>
